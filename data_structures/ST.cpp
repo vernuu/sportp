@@ -286,7 +286,7 @@ int32_t main(){
                          if( s == "min" ) cerr << T.getmin( l, r ) << '\n';
                          if( s == "max" ) cerr << T.getmax( l, r ) << '\n';
                          if( s == "sum" ) cerr << T.getsum( l, r ) << '\n';
-                         if( s == "upd1el" ) T.update_e( l + 1, r + 1 );
+                         if( s == "upd1el" ) T.update_e( l, r + 1 );
                          if( s == "updseg" ){
                               int x;
                               cin >> x;

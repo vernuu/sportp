@@ -29,7 +29,7 @@ const int inf = 1e7+7;
 
 
 
-template < typename T, T default_value, bool gcd_enable = 0, bool lca_enable = 0, bool min_enable = 0, bool max_enable = 0, bool sum_enable = 0 >
+template < typename T, T default_value, T minimal_value, T maximal_value, bool gcd_enable = 0, bool lca_enable = 0, bool min_enable = 0, bool max_enable = 0, bool sum_enable = 0 >
 struct st{
 
 
@@ -153,7 +153,7 @@ struct st{
 
 
      T _get_min_func( int64_t v, int64_t l, int64_t r, int64_t cl, int64_t cr ){
-          if( cl > cr ) return default_value;
+          if( cl > cr ) return maximal_value;
           if( l == cl && r == cr ) return tree_min[v];
 
           int64_t mid = ( l + r ) / 2;
@@ -171,7 +171,7 @@ struct st{
 
 
      T _get_max_func( int64_t v, int64_t l, int64_t r, int64_t cl, int64_t cr ){
-          if( cl > cr ) return default_value;
+          if( cl > cr ) return minimal_value;
           if( l == cl && r == cr ) return tree_max[v];
 
           int64_t mid = ( l + r ) / 2;
@@ -238,11 +238,12 @@ struct st{
 
      void _update_segment( int64_t v, int64_t l, int64_t r, int64_t cl, int64_t cr, int64_t x ){
           if( cl > cr ) return;
-          //if( l == cl && r == cr ) 
+          //if( l == cl && r == cr )
      }
      void update_s( int64_t l, int64_t r, int64_t x ){ _update_segment( 1, 0, ( tree_sz( ) / 4 ) - 1, l, r, x ); }
 
 };
+
 
 
 
@@ -266,7 +267,7 @@ int32_t main(){
                     }
 
 
-                    st < int, 0, 1, 1, 1, 1, 1 > T;
+                    st < int, 0, -MAX_MOD, MAX_MOD 1, 1, 1, 1, 1 > T;
                     T.build( A );
 
 
@@ -281,17 +282,18 @@ int32_t main(){
                          int l, r;
                          cin >> s >> l >> r, l--, --r;
 
-                         if( s == "gcd" ) cerr << T.getgcd( l, r ) << '\n';
-                         if( s == "lca" ) cerr << T.getlca( l, r ) << '\n';
-                         if( s == "min" ) cerr << T.getmin( l, r ) << '\n';
-                         if( s == "max" ) cerr << T.getmax( l, r ) << '\n';
-                         if( s == "sum" ) cerr << T.getsum( l, r ) << '\n';
+                         if( s == "gcd" ) cout << T.getgcd( l, r ) << '\n';
+                         if( s == "lca" ) cout << T.getlca( l, r ) << '\n';
+                         if( s == "min" ) cout << T.getmin( l, r ) << '\n';
+                         if( s == "max" ) cout << T.getmax( l, r ) << '\n';
+                         if( s == "sum" ) cout << T.getsum( l, r ) << '\n';
                          if( s == "upd1el" ) T.update_e( l, r + 1 );
                          if( s == "updseg" ){
                               int x;
                               cin >> x;
                               T.update_s( l, r, x );
                          }
+                         cout.flush( );
 
                     }
 

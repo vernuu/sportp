@@ -204,6 +204,44 @@ struct st{
      }
      T getsum( int64_t l, int64_t r ){return _get_sum_func( 1, 0, ( tree_sz( ) / 4 ) - 1, l, r );}
 
+
+     void _update_element( int64_t v, int64_t l, int64_t r, int64_t pos, int64_t x ){
+          if( l == r ){
+               if( gcd_enable ) tree_gcd[v] = x;
+               if( lca_enable ) tree_lca[v] = x;
+               if( min_enable ) tree_min[v] = x;
+               if( max_enable ) tree_max[v] = x;
+               if( sum_enable ) tree_sum[v] = x;
+          }else{
+               int mid = ( l + r ) / 2;
+
+               if( pos <= mid ){
+                    _update_element( v * 2, l, mid, pos, x );
+               }else{
+                    _update_element( v * 2 + 1, mid + 1, r, pos, x );
+               }
+
+               if( gcd_enable )
+                    tree_gcd[v] = gcd_func( tree_gcd[v * 2], tree_gcd[v * 2 + 1] );
+               if( lca_enable )
+                    tree_lca[v] = lca_func( tree_lca[v * 2], tree_lca[v * 2 + 1] );
+               if( min_enable )
+                    tree_min[v] = min_func( tree_min[v * 2], tree_min[v * 2 + 1] );
+               if( max_enable )
+                    tree_max[v] = max_func( tree_max[v * 2], tree_max[v * 2 + 1] );
+               if( sum_enable )
+                    tree_sum[v] = sum_func( tree_sum[v * 2], tree_sum[v * 2 + 1] );
+          }
+     }
+     void update_e( int64_t p, int64_t x ){ _update_element( 1, 0, ( tree_sz( ) / 4 ) - 1, p, x ); }
+
+
+     void _update_segment( int64_t v, int64_t l, int64_t r, int64_t cl, int64_t cr, int64_t x ){
+          if( cl > cr ) return;
+          //if( l == cl && r == cr ) 
+     }
+     void update_s( int64_t l, int64_t r, int64_t x ){ _update_segment( 1, 0, ( tree_sz( ) / 4 ) - 1, l, r, x ); }
+
 };
 
 
@@ -243,12 +281,17 @@ int32_t main(){
                          int l, r;
                          cin >> s >> l >> r, l--, --r;
 
-                         if( s == "gcd" ) cerr << T.getgcd( l, r );
-                         if( s == "lca" ) cerr << T.getlca( l, r );
-                         if( s == "min" ) cerr << T.getmin( l, r );
-                         if( s == "max" ) cerr << T.getmax( l, r );
-                         if( s == "sum" ) cerr << T.getsum( l, r );
-                         cerr << '\n';
+                         if( s == "gcd" ) cerr << T.getgcd( l, r ) << '\n';
+                         if( s == "lca" ) cerr << T.getlca( l, r ) << '\n';
+                         if( s == "min" ) cerr << T.getmin( l, r ) << '\n';
+                         if( s == "max" ) cerr << T.getmax( l, r ) << '\n';
+                         if( s == "sum" ) cerr << T.getsum( l, r ) << '\n';
+                         if( s == "upd1el" ) T.update_e( l + 1, r + 1 );
+                         if( s == "updseg" ){
+                              int x;
+                              cin >> x;
+                              T.update_s( l, r, x );
+                         }
 
                     }
 

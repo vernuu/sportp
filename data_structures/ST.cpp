@@ -267,7 +267,7 @@ int32_t main(){
                     }
 
 
-                    st < int, 0, -MAX_MOD, MAX_MOD 1, 1, 1, 1, 1 > T;
+                    st < int, 0, -MAX_MOD, MAX_MOD, 1, 1, 1, 1, 1 > T;
                     T.build( A );
 
 

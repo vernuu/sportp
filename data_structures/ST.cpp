@@ -28,8 +28,8 @@ const int inf = 1e7+7;
 
 
 
-
-template < typename T, T default_value, T minimal_value, T maximal_value, bool gcd_enable = 0, bool lca_enable = 0, bool min_enable = 0, bool max_enable = 0, bool sum_enable = 0 >
+/// SUO -> SEGMENT UPDATE OPTIMIZATION
+template < typename T, T default_value, T minimal_value, T maximal_value, bool gcd_enable = 0, bool lca_enable = 0, bool min_enable = 0, bool max_enable = 0, bool sum_enable = 0, bool suo_enable = 0 >
 struct st{
 
 
@@ -38,6 +38,8 @@ struct st{
      vector < T > tree_min;
      vector < T > tree_max;
      vector < T > tree_sum;
+     vector < T > tree_suo;
+     vector < int64_t > link;
 
 
      int64_t tree_sz( ){
@@ -47,6 +49,7 @@ struct st{
           if( min_enable ) if( tree_min.size() > ansver ) ansver = tree_min.size();
           if( max_enable ) if( tree_max.size() > ansver ) ansver = tree_max.size();
           if( sum_enable ) if( tree_sum.size() > ansver ) ansver = tree_sum.size();
+          ///No need to check suo tree or link there
           return ansver;
      }
 
@@ -83,6 +86,50 @@ struct st{
      }
 
 
+
+     void _update_element( int64_t v, int64_t l, int64_t r, int64_t pos, int64_t x ){
+          if( l == r ){
+               if( gcd_enable ) tree_gcd[v] = x;
+               if( lca_enable ) tree_lca[v] = x;
+               if( min_enable ) tree_min[v] = x;
+               if( max_enable ) tree_max[v] = x;
+               if( sum_enable ) tree_sum[v] = x;
+          }else{
+               int mid = ( l + r ) / 2;
+
+               if( pos <= mid ){
+                    _update_element( v * 2, l, mid, pos, x );
+               }else{
+                    _update_element( v * 2 + 1, mid + 1, r, pos, x );
+               }
+
+               if( gcd_enable )
+                    tree_gcd[v] = gcd_func( tree_gcd[v * 2], tree_gcd[v * 2 + 1] );
+               if( lca_enable )
+                    tree_lca[v] = lca_func( tree_lca[v * 2], tree_lca[v * 2 + 1] );
+               if( min_enable )
+                    tree_min[v] = min_func( tree_min[v * 2], tree_min[v * 2 + 1] );
+               if( max_enable )
+                    tree_max[v] = max_func( tree_max[v * 2], tree_max[v * 2 + 1] );
+               if( sum_enable )
+                    tree_sum[v] = sum_func( tree_sum[v * 2], tree_sum[v * 2 + 1] );
+          }
+     }
+     void update_element( int64_t p, int64_t x ){ _update_element( 1, 0, ( tree_sz( ) / 4 ) - 1, p, x ); }
+
+
+
+
+     void push_suo( int64_t v ){
+          if( link[v] != -1 ){
+               update_element( link[v * 2], tree_suo[v] );
+               update_element( link[v * 2 + 1], tree_suo[v] );
+               tree_suo[v] = default_value;///Some problems with 0 value
+          }
+     }
+
+
+
      void _st_build( vector < T > &A, int64_t v, int64_t l, int64_t r ){
           if( l == r ){
                if( gcd_enable ) tree_gcd[v] = A[l];
@@ -90,6 +137,7 @@ struct st{
                if( min_enable ) tree_min[v] = A[l];
                if( max_enable ) tree_max[v] = A[l];
                if( sum_enable ) tree_sum[v] = A[l];
+               if( suo_enable ) link[v] = l;///Flag
           }else{
                int64_t mid = ( l + r ) / 2;
 
@@ -100,23 +148,28 @@ struct st{
                if( min_enable ) tree_min[v] = min_func( tree_min[v * 2], tree_min[v * 2 + 1] );
                if( max_enable ) tree_max[v] = max_func( tree_max[v * 2], tree_max[v * 2 + 1] );
                if( sum_enable ) tree_sum[v] = sum_func( tree_sum[v * 2], tree_sum[v * 2 + 1] );
+               ///No need to check suo tree there
           }
 
      }
 
 
      void build( vector < T > &A ){
-          if( gcd_enable ) tree_gcd.resize( A.size( ) * 4 );
-          if( lca_enable ) tree_lca.resize( A.size( ) * 4 );
-          if( min_enable ) tree_min.resize( A.size( ) * 4 );
-          if( max_enable ) tree_max.resize( A.size( ) * 4 );
-          if( sum_enable ) tree_sum.resize( A.size( ) * 4 );
+          if( gcd_enable ) tree_gcd.resize( A.size( ) * 4, default_value );
+          if( lca_enable ) tree_lca.resize( A.size( ) * 4, default_value );
+          if( min_enable ) tree_min.resize( A.size( ) * 4, maximal_value );
+          if( max_enable ) tree_max.resize( A.size( ) * 4, minimal_value );
+          if( sum_enable ) tree_sum.resize( A.size( ) * 4, default_value );
+          if( suo_enable ) tree_suo.resize( A.size( ) * 4, default_value );
+          if( suo_enable ) link.resize( A.size( ) * 4, -1 );
+
 
           _st_build( A, 1, 0, A.size( ) - 1 );
      }
 
 
      T _get_gcd_func( int64_t v, int64_t l, int64_t r, int64_t cl, int64_t cr ){
+          if( suo_enable ) push_suo( v );
           if( cl > cr ) return default_value;
           if( l == cl && r == cr ) return tree_gcd[v];
 
@@ -205,42 +258,22 @@ struct st{
      T getsum( int64_t l, int64_t r ){return _get_sum_func( 1, 0, ( tree_sz( ) / 4 ) - 1, l, r );}
 
 
-     void _update_element( int64_t v, int64_t l, int64_t r, int64_t pos, int64_t x ){
-          if( l == r ){
-               if( gcd_enable ) tree_gcd[v] = x;
-               if( lca_enable ) tree_lca[v] = x;
-               if( min_enable ) tree_min[v] = x;
-               if( max_enable ) tree_max[v] = x;
-               if( sum_enable ) tree_sum[v] = x;
-          }else{
-               int mid = ( l + r ) / 2;
-
-               if( pos <= mid ){
-                    _update_element( v * 2, l, mid, pos, x );
-               }else{
-                    _update_element( v * 2 + 1, mid + 1, r, pos, x );
-               }
-
-               if( gcd_enable )
-                    tree_gcd[v] = gcd_func( tree_gcd[v * 2], tree_gcd[v * 2 + 1] );
-               if( lca_enable )
-                    tree_lca[v] = lca_func( tree_lca[v * 2], tree_lca[v * 2 + 1] );
-               if( min_enable )
-                    tree_min[v] = min_func( tree_min[v * 2], tree_min[v * 2 + 1] );
-               if( max_enable )
-                    tree_max[v] = max_func( tree_max[v * 2], tree_max[v * 2 + 1] );
-               if( sum_enable )
-                    tree_sum[v] = sum_func( tree_sum[v * 2], tree_sum[v * 2 + 1] );
-          }
-     }
-     void update_e( int64_t p, int64_t x ){ _update_element( 1, 0, ( tree_sz( ) / 4 ) - 1, p, x ); }
-
 
      void _update_segment( int64_t v, int64_t l, int64_t r, int64_t cl, int64_t cr, int64_t x ){
           if( cl > cr ) return;
-          //if( l == cl && r == cr )
+          if( l == cl && r == cr ) tree_suo[v] = x;
+          else{
+               push_suo( v );
+               int64_t mid = ( l + r ) / 2;
+               int64_t nr = mid, nl = mid + 1;
+               if( cr < nr ) nr = cr;
+               if( cl > nl ) nl = cl;
+
+               _update_element( v * 2, l, mid, cl, nr );
+               _update_element( v * 2 + 1, mid + 1, r, nl, cr );
+          }
      }
-     void update_s( int64_t l, int64_t r, int64_t x ){ _update_segment( 1, 0, ( tree_sz( ) / 4 ) - 1, l, r, x ); }
+     void update_segment( int64_t l, int64_t r, int64_t x ){ _update_segment( 1, 0, ( tree_sz( ) / 4 ) - 1, l, r, x ); }
 
 };
 
@@ -267,7 +300,7 @@ int32_t main(){
                     }
 
 
-                    st < int, 0, -MAX_MOD, MAX_MOD, 1, 1, 1, 1, 1 > T;
+                    st < int, 0, -MAX_MOD, MAX_MOD, 1, 1, 1, 1, 1, 0 > T;
                     T.build( A );
 
 
@@ -287,11 +320,11 @@ int32_t main(){
                          if( s == "min" ) cout << T.getmin( l, r ) << '\n';
                          if( s == "max" ) cout << T.getmax( l, r ) << '\n';
                          if( s == "sum" ) cout << T.getsum( l, r ) << '\n';
-                         if( s == "upd1el" ) T.update_e( l, r + 1 );
+                         if( s == "upd1el" ) T.update_element( l, r + 1 );
                          if( s == "updseg" ){
                               int x;
                               cin >> x;
-                              T.update_s( l, r, x );
+                              T.update_segment( l, r, x );
                          }
                          cout.flush( );
 

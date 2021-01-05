@@ -24,6 +24,15 @@ struct Hash{
      }
 
 
+     void ShrinkToFit( ){
+          if( used_memory < allocated_memory ) allocated_memory = used_memory + 2;
+          if( memory_border != 0 ){
+               allocated_memory = min( allocated_memory, memory_border - 2 );
+          }
+          Resize( );
+     }
+
+
      void CapacityCheck( ){
           if( realloc_trigger_percent <= 0 || realloc_multiplier == 0 ) return;
           if( ( double ) allocated_memory * realloc_trigger_percent - used_memory < 0 ){
@@ -39,7 +48,7 @@ struct Hash{
                cerr << " Available : \t" << allocated_memory << '\n';
                cerr << " Used : \t" << used_memory << '\n';
                //cerr << realloc_trigger_percent << ' ' << realloc_multiplier << '\n';
-               cerr << ( double ) allocated_memory * realloc_trigger_percent - used_memory << '\n';
+               //cerr << ( double ) allocated_memory * realloc_trigger_percent - used_memory << '\n';
                if( react_to_issues == 1 ) exit( 0 );
           }
      }
@@ -83,15 +92,13 @@ struct Hash{
      }
 
 
-     uint64_t GetHash( int l, int r ){
+     uint64_t GetHash( uint64_t l, uint64_t r ){
           return H[r + 1] - H[l] * D[r - l + 1];
      }
 
 
 
 };
-
-
 
 
 
